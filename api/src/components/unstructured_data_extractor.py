@@ -127,19 +127,21 @@ class DataExtractor(BaseComponent):
         self.llm = llm
 
     def process(self, chunk):
-        messages = [
-            {"role": "system", "content": generate_system_message()},
-            {"role": "user", "content": generate_prompt(chunk)},
-        ]
+        # messages = [
+        #     {"role": "system", "content": generate_system_message()},
+        #     {"role": "user", "content": generate_prompt(chunk)},
+        # ]
+        messages = generate_system_message() + generate_prompt(chunk) # gemini
         print(messages)
         output = self.llm.generate(messages)
         return output
 
     def process_with_labels(self, chunk, labels):
-        messages = [
-            {"role": "system", "content": generate_system_message_with_schema()},
-            {"role": "user", "content": generate_prompt_with_labels(chunk, labels)},
-        ]
+        # messages = [
+        #     {"role": "system", "content": generate_system_message_with_schema()},
+        #     {"role": "user", "content": generate_prompt_with_labels(chunk, labels)},
+        # ]
+        messages = generate_system_message_with_schema() + generate_prompt_with_labels(chunk, labels) # gemini
         print(messages)
         output = self.llm.generate(messages)
         return output
@@ -194,13 +196,14 @@ class DataExtractorWithSchema(BaseComponent):
 
         for chunk in chunked_data:
             print("prompt", generate_prompt_with_schema(chunk, schema))
-            messages = [
-                {
-                    "role": "system",
-                    "content": system_message,
-                },
-                {"role": "user", "content": generate_prompt_with_schema(chunk, schema)},
-            ]
+            # messages = [
+            #     {
+            #         "role": "system",
+            #         "content": system_message,
+            #     },
+            #     {"role": "user", "content": generate_prompt_with_schema(chunk, schema)},
+            # ]
+            messages = system_message + generate_prompt_with_schema(chunk, schema) # gemini
             output = self.llm.generate(messages)
             result.append(output)
         return getNodesAndRelationshipsFromResult(result)

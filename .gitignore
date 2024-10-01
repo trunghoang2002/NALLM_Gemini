@@ -42,4 +42,5 @@ share/python-wheels/
 MANIFEST
 .vscode
 .env
+note.txt
 **/neo4j/data/

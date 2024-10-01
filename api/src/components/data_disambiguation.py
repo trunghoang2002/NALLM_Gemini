@@ -75,10 +75,11 @@ class DataDisambiguation(BaseComponent):
                     + "]\n"
                 )
 
-            messages = [
-                {"role": "system", "content": generate_system_message_for_nodes()},
-                {"role": "user", "content": generate_prompt(disString)},
-            ]
+            # messages = [
+            #     {"role": "system", "content": generate_system_message_for_nodes()},
+            #     {"role": "user", "content": generate_prompt(disString)},
+            # ]
+            messages = generate_system_message_for_nodes() + generate_prompt(disString) # gemini
             rawNodes = self.llm.generate(messages)
 
             n = re.findall(internalRegex, rawNodes)
@@ -102,13 +103,14 @@ class DataDisambiguation(BaseComponent):
         node_labels = [node["name"] for node in new_nodes]
         relationship_data += "Valid Nodes:\n" + "\n".join(node_labels)
 
-        messages = [
-            {
-                "role": "system",
-                "content": generate_system_message_for_relationships(),
-            },
-            {"role": "user", "content": generate_prompt(relationship_data)},
-        ]
+        # messages = [
+        #     {
+        #         "role": "system",
+        #         "content": generate_system_message_for_relationships(),
+        #     },
+        #     {"role": "user", "content": generate_prompt(relationship_data)},
+        # ]
+        messages = generate_system_message_for_relationships() + generate_prompt(relationship_data) # gemini
         rawRelationships = self.llm.generate(messages)
         rels = re.findall(internalRegex, rawRelationships)
         new_relationships.extend(relationshipTextToListOfDict(rels))

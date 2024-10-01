@@ -23,9 +23,10 @@ class DataToCSV(BaseComponent):
         self.llm = llm
 
     def run(self, data: List[str]) -> str:
-        messages = [
-            {"role": "system", "content": generate_system_message()},
-            {"role": "user", "content": generate_prompt(data)},
-        ]
+        # messages = [
+        #     {"role": "system", "content": generate_system_message()},
+        #     {"role": "user", "content": generate_prompt(data)},
+        # ]
+        messages = generate_system_message() + generate_prompt(data) # gemini
         output = self.llm.generate(messages)
         return output

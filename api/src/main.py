@@ -17,7 +17,8 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fewshot_examples import get_fewshot_examples
-from llm.openai import OpenAIChat
+# from llm.openai import OpenAIChat
+from llm.gemini import GeminiChat # gemini
 from pydantic import BaseModel
 
 
@@ -49,7 +50,8 @@ neo4j_connection = Neo4jDatabase(
 
 
 # Initialize LLM modules
-openai_api_key = os.environ.get("OPENAI_API_KEY", None)
+# openai_api_key = os.environ.get("OPENAI_API_KEY", None)
+gemini_api_key = os.environ.get("GEMINI_API_KEY", None) # gemini
 
 
 # Define FastAPI endpoint
@@ -70,21 +72,30 @@ app.add_middleware(
 
 @app.post("/questionProposalsForCurrentDb")
 async def questionProposalsForCurrentDb(payload: questionProposalPayload):
-    if not openai_api_key and not payload.api_key:
+    # if not openai_api_key and not payload.api_key:
+    if not gemini_api_key and not payload.api_key: # gemini
         raise HTTPException(
             status_code=422,
-            detail="Please set OPENAI_API_KEY environment variable or send it as api_key in the request body",
+            # detail="Please set OPENAI_API_KEY environment variable or send it as api_key in the request body",
+            detail="Please set GEMINI_API_KEY environment variable or send it as api_key in the request body",
         )
-    api_key = openai_api_key if openai_api_key else payload.api_key
+    # api_key = openai_api_key if openai_api_key else payload.api_key
+    api_key = gemini_api_key if gemini_api_key else payload.api_key # gemini
 
     questionProposalGenerator = QuestionProposalGenerator(
         database=neo4j_connection,
-        llm=OpenAIChat(
-            openai_api_key=api_key,
-            model_name="gpt-3.5-turbo-0613",
+        # llm=OpenAIChat(
+        #     openai_api_key=api_key,
+        #     model_name="gpt-3.5-turbo-0613",
+        #     max_tokens=512,
+        #     temperature=0.8,
+        # ),
+        llm=GeminiChat(
+            gemini_api_key=api_key,
+            model_name="gemini-1.5-flash-latest",
             max_tokens=512,
             temperature=0.8,
-        ),
+        ), # gemini
     )
 
     return questionProposalGenerator.run()
@@ -92,7 +103,8 @@ async def questionProposalsForCurrentDb(payload: questionProposalPayload):
 
 @app.get("/hasapikey")
 async def hasApiKey():
-    return JSONResponse(content={"output": openai_api_key is not None})
+    # return JSONResponse(content={"output": openai_api_key is not None})
+    return JSONResponse(content={"output": gemini_api_key is not None}) # gemini
 
 
 @app.websocket("/text2text")
@@ -104,14 +116,16 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.send_json({"type": "error", "detail": message})
 
     async def onToken(token):
-        delta = token["choices"][0]["delta"]
-        if "content" not in delta:
-            return
-        content = delta["content"]
-        if token["choices"][0]["finish_reason"] == "stop":
-            await websocket.send_json({"type": "end", "output": content})
-        else:
-            await websocket.send_json({"type": "stream", "output": content})
+        # delta = token["choices"][0]["delta"]
+        # if "content" not in delta:
+        #     return
+        # content = delta["content"]
+        content = token # gemini
+        # if token["choices"][0]["finish_reason"] == "stop":
+        #     await websocket.send_json({"type": "end", "output": content})
+        # else:
+        #     await websocket.send_json({"type": "stream", "output": content})
+        await websocket.send_json({"type": "stream", "output": content}) # gemini
 
         # await websocket.send_json({"token": token})
 
@@ -121,24 +135,38 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
-            if not openai_api_key and not data.get("api_key"):
+            # if not openai_api_key and not data.get("api_key"):
+            if not gemini_api_key and not data.get("api_key"):
                 raise HTTPException(
                     status_code=422,
-                    detail="Please set OPENAI_API_KEY environment variable or send it as api_key in the request body",
+                    # detail="Please set OPENAI_API_KEY environment variable or send it as api_key in the request body",
+                    detail="Please set GEMINI_API_KEY environment variable or send it as api_key in the request body", # gemini
                 )
-            api_key = openai_api_key if openai_api_key else data.get("api_key")
+            # api_key = openai_api_key if openai_api_key else data.get("api_key")
+            api_key = gemini_api_key if gemini_api_key else data.get("api_key") # gemini
 
-            default_llm = OpenAIChat(
-                openai_api_key=api_key,
-                model_name=data.get("model_name", "gpt-3.5-turbo-0613"),
-            )
+            # default_llm = OpenAIChat(
+            #     openai_api_key=api_key,
+            #     model_name=data.get("model_name", "gpt-3.5-turbo-0613"),
+            # )
+            default_llm = GeminiChat(
+                gemini_api_key=api_key,
+                model_name=data.get("model_name", "gemini-1.5-flash-latest"),
+            ) # gemini
+            # summarize_results = SummarizeCypherResult(
+            #     llm=OpenAIChat(
+            #         openai_api_key=api_key,
+            #         model_name="gpt-3.5-turbo-0613",
+            #         max_tokens=128,
+            #     )
+            # )
             summarize_results = SummarizeCypherResult(
-                llm=OpenAIChat(
-                    openai_api_key=api_key,
-                    model_name="gpt-3.5-turbo-0613",
+                llm=GeminiChat(
+                    gemini_api_key=api_key,
+                    model_name="gemini-1.5-flash-latest",
                     max_tokens=128,
                 )
-            )
+            ) # gemini
 
             text2cypher = Text2Cypher(
                 database=neo4j_connection,
@@ -152,7 +180,7 @@ async def websocket_endpoint(websocket: WebSocket):
             if data["type"] == "question":
                 try:
                     question = data["question"]
-                    chatHistory.append({"role": "user", "content": question})
+                    chatHistory.append({"role": "user", "parts": question})
                     await sendDebugMessage("received question: " + question)
                     results = None
                     try:
@@ -175,7 +203,8 @@ async def websocket_endpoint(websocket: WebSocket):
                         results["output"][:HARD_LIMIT_CONTEXT_RECORDS],
                         callback=onToken,
                     )
-                    chatHistory.append({"role": "system", "content": output})
+                    # chatHistory.append({"role": "system", "content": output}) # TODO: ??? why role is system but not assistant
+                    chatHistory.append({"role": "model", "parts": output}) # gemini
                     await websocket.send_json(
                         {
                             "type": "end",
@@ -195,19 +224,25 @@ async def root(payload: ImportPayload):
     """
     Takes an input and created a Cypher query
     """
-    if not openai_api_key and not payload.api_key:
+    # if not openai_api_key and not payload.api_key:
+    if not gemini_api_key and not payload.api_key: # gemini
         raise HTTPException(
             status_code=422,
-            detail="Please set OPENAI_API_KEY environment variable or send it as api_key in the request body",
+            # detail="Please set OPENAI_API_KEY environment variable or send it as api_key in the request body",
+            detail="Please set GEMINI_API_KEY environment variable or send it as api_key in the request body", # gemini
         )
-    api_key = openai_api_key if openai_api_key else payload.api_key
+    # api_key = openai_api_key if openai_api_key else payload.api_key
+    api_key = gemini_api_key if gemini_api_key else payload.api_key # gemini
 
     try:
         result = ""
 
-        llm = OpenAIChat(
-            openai_api_key=api_key, model_name="gpt-3.5-turbo-16k", max_tokens=4000
-        )
+        # llm = OpenAIChat(
+        #     openai_api_key=api_key, model_name="gpt-3.5-turbo-16k", max_tokens=4000
+        # )
+        llm = GeminiChat(
+            gemini_api_key=api_key, model_name="gemini-1.5-flash-latest", max_tokens=4000
+        ) # gemini
 
         if not payload.neo4j_schema:
             extractor = DataExtractor(llm=llm)
@@ -238,19 +273,28 @@ class companyReportPayload(BaseModel):
 # This endpoint is database specific and only works with the Demo database.
 @app.post("/companyReport")
 async def companyInformation(payload: companyReportPayload):
-    api_key = openai_api_key if openai_api_key else payload.api_key
-    if not openai_api_key and not payload.api_key:
+    # api_key = openai_api_key if openai_api_key else payload.api_key
+    api_key = gemini_api_key if gemini_api_key else payload.api_key # gemini
+    # if not openai_api_key and not payload.api_key:
+    if not gemini_api_key and not payload.api_key: # gemini
         raise HTTPException(
             status_code=422,
-            detail="Please set OPENAI_API_KEY environment variable or send it as api_key in the request body",
+            # detail="Please set OPENAI_API_KEY environment variable or send it as api_key in the request body",
+            detail="Please set GEMINI_API_KEY environment variable or send it as api_key in the request body", # gemini
         )
-    api_key = openai_api_key if openai_api_key else payload.api_key
+    # api_key = openai_api_key if openai_api_key else payload.api_key
+    api_key = gemini_api_key if gemini_api_key else payload.api_key # gemini
 
-    llm = OpenAIChat(
-        openai_api_key=api_key,
-        model_name="gpt-3.5-turbo-16k-0613",
+    # llm = OpenAIChat(
+    #     openai_api_key=api_key,
+    #     model_name="gpt-3.5-turbo-16k-0613",
+    #     max_tokens=512,
+    # )
+    llm = GeminiChat(
+        gemini_api_key=api_key,
+        model_name="gemini-1.5-flash-latest",
         max_tokens=512,
-    )
+    ) # gemini
     print("Running company report for " + payload.company)
     company_report = CompanyReport(neo4j_connection, payload.company, llm)
     result = company_report.run()

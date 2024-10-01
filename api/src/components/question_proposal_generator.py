@@ -36,14 +36,16 @@ class QuestionProposalGenerator(BaseComponent):
         )
 
     def run(self) -> Dict[str, Union[str, List[Dict[str, Any]]]]:
-        messages = [{"role": "system", "content": self.get_system_message()}]
+        # messages = [{"role": "system", "content": self.get_system_message()}]
+        messages = self.get_system_message() # gemini
         sample = self.get_database_sample()
-        messages.append(
-            {
-                "role": "user",
-                "content": f"""Please generate 5 questions about the content of the database. Here is a sample of the database you can use when generating questions: {sample}""",
-            }
-        )
+        # messages.append(
+        #     {
+        #         "role": "user",
+        #         "content": f"""Please generate 5 questions about the content of the database. Here is a sample of the database you can use when generating questions: {sample}""",
+        #     }
+        # )
+        messages += f"""Please generate 5 questions about the content of the database. Here is a sample of the database you can use when generating questions: {sample}""" # gemini
         print(messages)
         questionsString = self.llm.generate(messages)
         questions = [

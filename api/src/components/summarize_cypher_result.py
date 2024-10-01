@@ -54,11 +54,11 @@ class SummarizeCypherResult(BaseComponent):
         question: str,
         results: List[Dict[str, Any]],
     ) -> Dict[str, str]:
-        messages = [
-            {"role": "system", "content": system},
-            {"role": "user", "content": self.generate_user_prompt(question, results)},
-        ]
-
+        # messages = [
+        #     {"role": "system", "content": system},
+        #     {"role": "user", "content": self.generate_user_prompt(question, results)},
+        # ]
+        messages = system + self.generate_user_prompt(question, results) # gemini
         output = self.llm.generate(messages)
         return output
 
@@ -68,9 +68,10 @@ class SummarizeCypherResult(BaseComponent):
         results: List[Dict[str, Any]],
         callback: Callable[[str], Awaitable[Any]] = None,
     ) -> Dict[str, str]:
-        messages = [
-            {"role": "system", "content": system},
-            {"role": "user", "content": self.generate_user_prompt(question, results)},
-        ]
+        # messages = [
+        #     {"role": "system", "content": system},
+        #     {"role": "user", "content": self.generate_user_prompt(question, results)},
+        # ]
+        messages = system + self.generate_user_prompt(question, results) # gemini
         output = await self.llm.generateStreaming(messages, onTokenCallback=callback)
         return "".join(output)
