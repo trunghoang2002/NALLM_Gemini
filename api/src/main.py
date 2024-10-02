@@ -53,6 +53,8 @@ neo4j_connection = Neo4jDatabase(
 # openai_api_key = os.environ.get("OPENAI_API_KEY", None)
 gemini_api_key = os.environ.get("GEMINI_API_KEY", None) # gemini
 
+# MODEL_NAME = "gemini-1.5-flash-latest"
+MODEL_NAME = "gemini-1.5-pro-latest"
 
 # Define FastAPI endpoint
 app = FastAPI()
@@ -92,7 +94,7 @@ async def questionProposalsForCurrentDb(payload: questionProposalPayload):
         # ),
         llm=GeminiChat(
             gemini_api_key=api_key,
-            model_name="gemini-1.5-flash-latest",
+            model_name=MODEL_NAME,
             max_tokens=512,
             temperature=0.8,
         ), # gemini
@@ -151,7 +153,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # )
             default_llm = GeminiChat(
                 gemini_api_key=api_key,
-                model_name=data.get("model_name", "gemini-1.5-flash-latest"),
+                model_name=data.get("model_name", MODEL_NAME),
             ) # gemini
             # summarize_results = SummarizeCypherResult(
             #     llm=OpenAIChat(
@@ -163,7 +165,7 @@ async def websocket_endpoint(websocket: WebSocket):
             summarize_results = SummarizeCypherResult(
                 llm=GeminiChat(
                     gemini_api_key=api_key,
-                    model_name="gemini-1.5-flash-latest",
+                    model_name=MODEL_NAME,
                     max_tokens=128,
                 )
             ) # gemini
@@ -241,7 +243,7 @@ async def root(payload: ImportPayload):
         #     openai_api_key=api_key, model_name="gpt-3.5-turbo-16k", max_tokens=4000
         # )
         llm = GeminiChat(
-            gemini_api_key=api_key, model_name="gemini-1.5-flash-latest", max_tokens=4000
+            gemini_api_key=api_key, model_name=MODEL_NAME, max_tokens=4000
         ) # gemini
 
         if not payload.neo4j_schema:
@@ -292,7 +294,7 @@ async def companyInformation(payload: companyReportPayload):
     # )
     llm = GeminiChat(
         gemini_api_key=api_key,
-        model_name="gemini-1.5-flash-latest",
+        model_name=MODEL_NAME,
         max_tokens=512,
     ) # gemini
     print("Running company report for " + payload.company)

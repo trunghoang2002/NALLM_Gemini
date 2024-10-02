@@ -274,7 +274,7 @@ function App() {
             {/* <option value="gpt-3.5-turbo-0613">gpt-3.5-turbo</option>
             <option value="gpt-4">gpt-4</option> */}
             <option value="gemini-1.5-flash-latest">gemini</option> 
-            <option value="gemini-1.5-pro-latest">gpt-3.5-turbo</option>
+            <option value="gemini-1.5-pro-latest">gpt-3.5-turbo</option> {/* gemini */}
         </select>
         </div>
       <div className="p-6 mx-auto mt-20 rounded-lg bg-palette-neutral-bg-weak min-h-[6rem] min-w-[18rem] max-w-4xl ">
