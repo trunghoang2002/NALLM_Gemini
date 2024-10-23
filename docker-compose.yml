@@ -2,21 +2,23 @@
 services:
   backend:
     build:
-      context: ./api
-    hostname: api
-    restart: always
-    container_name: api
+      context: ./api           # Đường dẫn đến thư mục chứa Dockerfile cho backend
+    # image: imageName:tagName   # Tên image, nếu không có sẽ sử dụng tên mặc định là <tên thư mục>-<tên service>:latest
+    hostname: api              # Tên hostname cho container backend
+    restart: always            # Luôn khởi động lại container nếu nó dừng
+    container_name: api        # Tên container
     ports:
-      - 7860:7860
+      - 7860:7860              # Chuyển tiếp cổng 7860 từ host đến container
     env_file:
-      - .env
+      - .env                   # Tập tin chứa biến môi trường
     volumes:
-      - ./api:/api
+      - ./api:/api             # Gắn volume để đồng bộ hóa mã nguồn giữa host và container
+
   frontend:
     build:
-      context: ./ui
-    hostname: ui
-    restart: always
-    container_name: ui
+      context: ./ui            # Đường dẫn đến thư mục chứa Dockerfile cho frontend
+    hostname: ui               # Tên hostname cho container frontend
+    restart: always            # Luôn khởi động lại container nếu nó dừng
+    container_name: ui         # Tên container
     ports:
-      - 4173:4173
+      - 4173:4173              # Chuyển tiếp cổng 4173 từ host đến container
